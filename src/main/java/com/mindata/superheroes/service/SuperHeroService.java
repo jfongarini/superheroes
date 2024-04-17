@@ -2,43 +2,41 @@ package com.mindata.superheroes.service;
 
 import com.mindata.superheroes.dto.SuperHeroDto;
 import com.mindata.superheroes.model.SuperHero;
+import com.mindata.superheroes.repository.SuperHeroRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SuperHeroService {
 
-    private final List<SuperHero> superHeroes = new ArrayList<>();
+    private final SuperHeroRepository superHeroRepository;
+
+    public SuperHeroService(SuperHeroRepository superHeroRepository) {
+        this.superHeroRepository = superHeroRepository;
+    }
 
     public List<SuperHero> getAll() {
-        return superHeroes;
+        return superHeroRepository.findAll();
     }
 
     public SuperHero getById(Long id) {
-        for (SuperHero hero : superHeroes) {
-            if (hero.getId().equals(id)) {
-                return hero;
-            }
+        Optional<SuperHero> optionalSuperHero = superHeroRepository.findById(id);
+        if (optionalSuperHero.isEmpty()){
+            throw new RuntimeException("SuperHero not found");
         }
-        throw new RuntimeException("Not found");
+        return optionalSuperHero.get();
     }
 
     public List<SuperHero> getAllByName(String name) {
-        List<SuperHero> heroesByName = new ArrayList<>();
-        for (SuperHero hero : superHeroes) {
-            if (hero.getName().equals(name)) {
-                heroesByName.add(hero);
-            }
-        }
-        return heroesByName;
+        return superHeroRepository.findAllByNameIgnoreCaseContaining(name.toLowerCase());
     }
 
     public SuperHero create(SuperHeroDto newSuperHeroDto) {
         validateSuperHero(newSuperHeroDto);
         SuperHero newSuperHero = SuperHeroDto.toSuperHero(newSuperHeroDto);
-        superHeroes.add(newSuperHero);
+        superHeroRepository.save(newSuperHero);
         return newSuperHero;
     }
 
@@ -50,14 +48,13 @@ public class SuperHeroService {
         existingHero.setDescription(updatedSuperHeroDto.getDescription());
         existingHero.setSuperPowers(updatedSuperHeroDto.getSuperPowers());
         existingHero.setVulnerabilities(updatedSuperHeroDto.getVulnerabilities());
+        superHeroRepository.save(existingHero);
         return existingHero;
-
     }
 
-    public SuperHero delete(Long id) {
+    public void delete(Long id) {
         SuperHero heroToDelete = getById(id);
-        superHeroes.remove(heroToDelete);
-        return heroToDelete;
+        superHeroRepository.delete(heroToDelete);
     }
 
     private void validateSuperHero(SuperHeroDto superHero) {
