@@ -1,7 +1,6 @@
 package com.mindata.superheroes.controller;
 
 import com.mindata.superheroes.dto.SuperHeroDto;
-import com.mindata.superheroes.model.SuperHero;
 import com.mindata.superheroes.service.SuperHeroService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

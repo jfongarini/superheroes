@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface SuperHeroRepository extends JpaRepository<SuperHero, Long> {
-    @Query("SELECT sh FROM SuperHero sh WHERE LOWER(sh.name) LIKE %:name%")
-    List<SuperHero> findAllByNameIgnoreCaseContaining(String name);
+    @Query(value = "SELECT * FROM super_hero sh WHERE LOWER(sh.name) LIKE LOWER(CONCAT('%', :name, '%'))", nativeQuery = true)
+    List<SuperHero> findAllByName(String name);
 }
