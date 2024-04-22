@@ -6,6 +6,8 @@ import com.mindata.superheroes.exception.NotFoundException;
 import com.mindata.superheroes.model.SuperHero;
 import com.mindata.superheroes.repository.SuperHeroRepository;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ public class SuperHeroService {
         return superHeroRepository.findAll();
     }
 
+    @Cacheable("superheroCache")
     public SuperHero getById(Long id) {
         Optional<SuperHero> optionalSuperHero = superHeroRepository.findById(id);
         if (optionalSuperHero.isEmpty()){
@@ -45,6 +48,7 @@ public class SuperHeroService {
         return newSuperHero;
     }
 
+    @CacheEvict(value = "superheroCache", allEntries = true)
     public SuperHero update(SuperHeroDto updatedSuperHeroDto) {
         validateSuperHero(updatedSuperHeroDto);
         SuperHero existingHero = getById(updatedSuperHeroDto.getId());
@@ -58,6 +62,7 @@ public class SuperHeroService {
         return existingHero;
     }
 
+    @CacheEvict(value = "superheroCache", key = "#id")
     public void delete(Long id) {
         SuperHero heroToDelete = getById(id);
         superHeroRepository.delete(heroToDelete);
