@@ -30,6 +30,10 @@ public class SecurityConfiguration {
                 .cors(customizer -> customizer.disable())
                 .csrf(customizer -> customizer.disable())
                 .authorizeHttpRequests((authz) -> authz
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                              ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults());
