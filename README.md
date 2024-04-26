@@ -44,7 +44,7 @@ Search superheroes by superhero name.
 * Maven
 * Java 21
 * H2 Database
-
+* Jacoco
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -105,6 +105,22 @@ The application is secured by basic authentication, the default credentials are:
     ```
    superheroes
    ```
+<!-- COVERAGE REPORT -->
+## Generating Coverage Report
+
+To generate a coverage report of the tests, follow these steps:
+
+1. Execute the following command at the root of the project:
+```sh
+   mvn clean test
+```
+
+2. After the tests are completed, execute the following command to generate the coverage report:
+```sh
+   mvn jacoco:report
+```
+3. The coverage report will be available in the directory target/site/jacoco/index.html.
+
 
 <!-- CONTACT -->
 ## Contact
