@@ -2,6 +2,7 @@ package com.mindata.superheroes.controller;
 
 import com.mindata.superheroes.annotation.CustomTimed;
 import com.mindata.superheroes.dto.SuperHeroDto;
+import com.mindata.superheroes.dto.SuperHeroRequestDto;
 import com.mindata.superheroes.service.SuperHeroService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,19 +40,20 @@ public class SuperHeroController {
 
     @CustomTimed
     @PostMapping
-    public ResponseEntity<SuperHeroDto> createSuperHero(@RequestBody SuperHeroDto newSuperHeroDto) {
+    public ResponseEntity<SuperHeroDto> createSuperHero(@RequestBody SuperHeroRequestDto newSuperHeroDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(SuperHeroDto.toDto(superHeroService.create(newSuperHeroDto)));
     }
 
     @CustomTimed
-    @PutMapping
-    public ResponseEntity<SuperHeroDto> updateSuperHero(@RequestBody SuperHeroDto updatedSuperHeroDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(SuperHeroDto.toDto(superHeroService.update(updatedSuperHeroDto)));
+    @PutMapping("/{id}")
+    public ResponseEntity<SuperHeroDto> updateSuperHero(@RequestBody SuperHeroRequestDto updatedSuperHeroDto, @PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(SuperHeroDto.toDto(superHeroService.update(updatedSuperHeroDto,id)));
     }
 
     @CustomTimed
     @DeleteMapping("/{id}")
-    public void deleteSuperHero(@PathVariable Long id) {
+    public ResponseEntity<String> deleteSuperHero(@PathVariable Long id) {
         superHeroService.delete(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Superhero successfully deleted.");
     }
 }

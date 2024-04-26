@@ -1,6 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindata.superheroes.Application;
-import com.mindata.superheroes.dto.SuperHeroDto;
+import com.mindata.superheroes.dto.SuperHeroRequestDto;
 import com.mindata.superheroes.model.SuperHero;
 import com.mindata.superheroes.repository.SuperHeroRepository;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,9 +17,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 
 @SpringBootTest(classes = Application.class)
@@ -43,7 +47,7 @@ public class SuperHeroControllerIntegrationTest {
                 .id(1L)
                 .name("Batman")
                 .description("The Dark Knight")
-                .superPowers(Arrays.asList("Intelligence", "Combat Skills"))
+                .superPowers(Arrays.asList("Combat Skills","Intelligence"))
                 .vulnerabilities(List.of("No superpowers"))
                 .build();
         SuperHero superman = SuperHero.builder()
@@ -77,8 +81,8 @@ public class SuperHeroControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Batman"))
                 .andExpect(jsonPath("$[0].description").value("The Dark Knight"))
-                .andExpect(jsonPath("$[0].superPowers[0]").value("Intelligence"))
-                .andExpect(jsonPath("$[0].superPowers[1]").value("Combat Skills"))
+                .andExpect(jsonPath("$[0].superPowers[0]").value("Combat Skills"))
+                .andExpect(jsonPath("$[0].superPowers[1]").value("Intelligence"))
                 .andExpect(jsonPath("$[0].vulnerabilities[0]").value("No superpowers"))
                 .andExpect(jsonPath("$[1].name").value("Superman"))
                 .andExpect(jsonPath("$[1].description").value("The Man of Steel"))
@@ -94,8 +98,8 @@ public class SuperHeroControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Batman"))
                 .andExpect(jsonPath("$[0].description").value("The Dark Knight"))
-                .andExpect(jsonPath("$[0].superPowers[0]").value("Intelligence"))
-                .andExpect(jsonPath("$[0].superPowers[1]").value("Combat Skills"))
+                .andExpect(jsonPath("$[0].superPowers[0]").value("Combat Skills"))
+                .andExpect(jsonPath("$[0].superPowers[1]").value("Intelligence"))
                 .andExpect(jsonPath("$[0].vulnerabilities[0]").value("No superpowers"))
                 .andExpect(jsonPath("$[1].name").value("Superman"))
                 .andExpect(jsonPath("$[1].description").value("The Man of Steel"))
@@ -111,44 +115,42 @@ public class SuperHeroControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Batman"))
                 .andExpect(jsonPath("$.description").value("The Dark Knight"))
-                .andExpect(jsonPath("$.superPowers[0]").value("Intelligence"))
-                .andExpect(jsonPath("$.superPowers[1]").value("Combat Skills"))
+                .andExpect(jsonPath("$.superPowers[0]").value("Combat Skills"))
+                .andExpect(jsonPath("$.superPowers[1]").value("Intelligence"))
                 .andExpect(jsonPath("$.vulnerabilities[0]").value("No superpowers"));
     }
 
     @Test
     public void createSuperHeroIntegrationTest() throws Exception {
-        SuperHeroDto superman = SuperHeroDto.builder()
-                .id(5L)
-                .name("Superman")
-                .description("The Man of Steel")
-                .superPowers(Arrays.asList("Flight", "Super strength"))
-                .vulnerabilities(List.of("Kryptonite"))
+        SuperHeroRequestDto superman = SuperHeroRequestDto.builder()
+                .name("Wonder Woman")
+                .description("Amazon princess and warrior")
+                .superPowers(Arrays.asList("Super strength", "Flight", "Lasso of Truth"))
+                .vulnerabilities(List.of("Vulnerability to piercing weapons"))
                 .build();
 
         mockMvc.perform(post("/superheroes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(superman)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("Superman"))
-                .andExpect(jsonPath("$.description").value("The Man of Steel"))
-                .andExpect(jsonPath("$.superPowers[0]").value("Flight"))
-                .andExpect(jsonPath("$.superPowers[1]").value("Super strength"))
-                .andExpect(jsonPath("$.vulnerabilities[0]").value("Kryptonite"));
+                .andExpect(jsonPath("$.name").value("Wonder Woman"))
+                .andExpect(jsonPath("$.description").value("Amazon princess and warrior"))
+                .andExpect(jsonPath("$.superPowers[0]").value("Super strength"))
+                .andExpect(jsonPath("$.superPowers[1]").value("Flight"))
+                .andExpect(jsonPath("$.superPowers[2]").value("Lasso of Truth"))
+                .andExpect(jsonPath("$.vulnerabilities[0]").value("Vulnerability to piercing weapons"));
     }
 
     @Test
     public void updateSuperHeroIntegrationTest() throws Exception {
-        Long superHeroId = 3L;
-        SuperHeroDto batman = SuperHeroDto.builder()
-                .id(superHeroId)
+        SuperHeroRequestDto batman = SuperHeroRequestDto.builder()
                 .name("Spiderman")
                 .description("Friendly neighborhood spider")
                 .superPowers(Arrays.asList("Spider sense", "Super strength"))
                 .vulnerabilities(List.of("Guilty over uncle Ben's death","Limited web fluid"))
                 .build();
 
-        mockMvc.perform(put("/superheroes")
+        mockMvc.perform(put("/superheroes/3")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(batman)))
                 .andExpect(status().isOk())
@@ -163,7 +165,8 @@ public class SuperHeroControllerIntegrationTest {
     @Test
     public void deleteSuperHeroIntegrationTest() throws Exception {
         mockMvc.perform(delete("/superheroes/{id}", 4L))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string("Superhero successfully deleted."));
     }
 
     @Test
@@ -174,9 +177,24 @@ public class SuperHeroControllerIntegrationTest {
     }
 
     @Test
+    public void createSuperHeroRepeatedNameIntegrationTest() throws Exception {
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Super strength"))
+                .vulnerabilities(List.of("Kryptonite"))
+                .build();
+
+        mockMvc.perform(post("/superheroes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(superHeroDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Superhero with the same name already exists."));
+    }
+
+    @Test
     public void createSuperHeroEmptyNameIntegrationTest() throws Exception {
-        SuperHeroDto superHeroDto = SuperHeroDto.builder()
-                .id(6L)
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
                 .description("The Man of Steel")
                 .superPowers(Arrays.asList("Flight", "Super strength"))
                 .vulnerabilities(List.of("Kryptonite"))
@@ -191,8 +209,7 @@ public class SuperHeroControllerIntegrationTest {
 
     @Test
     public void createSuperHeroEmptyDescriptionIntegrationTest() throws Exception {
-        SuperHeroDto superHeroDto = SuperHeroDto.builder()
-                .id(6L)
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
                 .name("Superman")
                 .superPowers(Arrays.asList("Flight", "Super strength"))
                 .vulnerabilities(List.of("Kryptonite"))
@@ -207,8 +224,7 @@ public class SuperHeroControllerIntegrationTest {
 
     @Test
     public void createSuperHeroEmptySuperPowersIntegrationTest() throws Exception {
-        SuperHeroDto superHeroDto = SuperHeroDto.builder()
-                .id(6L)
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
                 .name("Superman")
                 .description("The Man of Steel")
                 .superPowers(new ArrayList<>())
@@ -224,8 +240,7 @@ public class SuperHeroControllerIntegrationTest {
 
     @Test
     public void createSuperHeroEmptyVulnerabilitiesIntegrationTest() throws Exception {
-        SuperHeroDto superHeroDto = SuperHeroDto.builder()
-                .id(6L)
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
                 .name("Superman")
                 .description("The Man of Steel")
                 .superPowers(Arrays.asList("Flight", "Super strength"))
@@ -237,5 +252,37 @@ public class SuperHeroControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(superHeroDto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("The list of superhero vulnerabilities cannot be null or empty."));
+    }
+
+    @Test
+    public void createSuperHeroRepeatSuperPowersIntegrationTest() throws Exception {
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Flight"))
+                .vulnerabilities(List.of("Kryptonite"))
+                .build();
+
+        mockMvc.perform(post("/superheroes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(superHeroDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("The list of superhero superpowers cannot contain duplicate elements."));
+    }
+
+    @Test
+    public void createSuperHeroRepeatVulnerabilitiesIntegrationTest() throws Exception {
+        SuperHeroRequestDto superHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight"))
+                .vulnerabilities(List.of("Kryptonite","Kryptonite"))
+                .build();
+
+        mockMvc.perform(post("/superheroes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(superHeroDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("The list of superhero vulnerabilities cannot contain duplicate elements."));
     }
 }

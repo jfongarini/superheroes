@@ -11,4 +11,7 @@ import java.util.List;
 public interface SuperHeroRepository extends JpaRepository<SuperHero, Long> {
     @Query(value = "SELECT * FROM super_hero sh WHERE LOWER(sh.name) LIKE LOWER(CONCAT('%', :name, '%'))", nativeQuery = true)
     List<SuperHero> findAllByName(String name);
+
+    boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
 }

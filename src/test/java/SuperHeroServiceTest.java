@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.mindata.superheroes.dto.SuperHeroRequestDto;
 import com.mindata.superheroes.exception.InvalidParameterException;
 import com.mindata.superheroes.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeAll;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import com.mindata.superheroes.dto.SuperHeroDto;
 import com.mindata.superheroes.model.SuperHero;
 import com.mindata.superheroes.repository.SuperHeroRepository;
 import com.mindata.superheroes.service.SuperHeroService;
@@ -139,7 +139,7 @@ public class SuperHeroServiceTest {
 
     @Test
     public void createSuperHeroTest() {
-        SuperHeroDto newSuperHeroDto = SuperHeroDto.builder()
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
                                     .name("Superman")
                                     .description("The Man of Steel")
                                     .superPowers(Arrays.asList("Flight", "Super strength"))
@@ -152,6 +152,7 @@ public class SuperHeroServiceTest {
                                     .superPowers(Arrays.asList("Flight", "Super strength"))
                                     .vulnerabilities(List.of("Kryptonite"))
                                     .build();
+        when(superHeroRepository.existsByName(anyString())).thenReturn(false);
         when(superHeroRepository.save(any(SuperHero.class))).thenReturn(newSuperHero);
 
         SuperHero result = superHeroService.create(newSuperHeroDto);
@@ -167,7 +168,7 @@ public class SuperHeroServiceTest {
 
     @Test
     public void createSuperHeroEmptyNameTest() {
-        SuperHeroDto newSuperHeroDto = SuperHeroDto.builder()
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
                 .description("The Man of Steel")
                 .superPowers(Arrays.asList("Flight", "Super strength"))
                 .vulnerabilities(List.of("Kryptonite"))
@@ -178,8 +179,22 @@ public class SuperHeroServiceTest {
     }
 
     @Test
+    public void createSuperHeroRepeatedNameTest() {
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Super strength"))
+                .vulnerabilities(List.of("Kryptonite"))
+                .build();
+        when(superHeroRepository.existsByName(anyString())).thenReturn(true);
+
+        InvalidParameterException exception = assertThrows(InvalidParameterException.class, () -> superHeroService.create(newSuperHeroDto));
+        assertEquals("Superhero with the same name already exists.", exception.getMessage());
+    }
+
+    @Test
     public void createSuperHeroEmptyDescriptionTest() {
-        SuperHeroDto newSuperHeroDto = SuperHeroDto.builder()
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
                 .name("Superman")
                 .superPowers(Arrays.asList("Flight", "Super strength"))
                 .vulnerabilities(List.of("Kryptonite"))
@@ -191,7 +206,7 @@ public class SuperHeroServiceTest {
 
     @Test
     public void createSuperHeroEmptySuperPowersTest() {
-        SuperHeroDto newSuperHeroDto = SuperHeroDto.builder()
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
                 .name("Superman")
                 .description("The Man of Steel")
                 .superPowers(List.of())
@@ -204,7 +219,7 @@ public class SuperHeroServiceTest {
 
     @Test
     public void createSuperHeroEmptyVulnerabilitiesTest() {
-        SuperHeroDto newSuperHeroDto = SuperHeroDto.builder()
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
                 .name("Superman")
                 .description("The Man of Steel")
                 .superPowers(Arrays.asList("Flight", "Super strength"))
@@ -216,28 +231,68 @@ public class SuperHeroServiceTest {
     }
 
     @Test
+    public void createSuperHeroRepeatSuperPowersTest() {
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Flight"))
+                .vulnerabilities(List.of("Kryptonite"))
+                .build();
+
+        InvalidParameterException exception = assertThrows(InvalidParameterException.class, () -> superHeroService.create(newSuperHeroDto));
+        assertEquals("The list of superhero superpowers cannot contain duplicate elements.", exception.getMessage());
+    }
+
+    @Test
+    public void createSuperHeroRepeatVulnerabilitiesTest() {
+        SuperHeroRequestDto newSuperHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Super strength"))
+                .vulnerabilities(List.of("Kryptonite","Kryptonite"))
+                .build();
+
+        InvalidParameterException exception = assertThrows(InvalidParameterException.class, () -> superHeroService.create(newSuperHeroDto));
+        assertEquals("The list of superhero vulnerabilities cannot contain duplicate elements.", exception.getMessage());
+    }
+
+    @Test
     public void updateSuperHeroTest() {
         Long id = 1L;
-        SuperHeroDto updatedSuperHeroDto = SuperHeroDto.builder()
-                                                .id(id)
-                                                .name("Superman")
-                                                .description("The Man of Steel")
-                                                .superPowers(Arrays.asList("Flight", "Super strength"))
-                                                .vulnerabilities(List.of("Kryptonite"))
-                                                .build();
+        SuperHeroRequestDto updatedSuperHeroDto = SuperHeroRequestDto.builder()
+                .name("The Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Super strength"))
+                .vulnerabilities(List.of("Kryptonite"))
+                .build();
         SuperHero existingHero = new SuperHero();
         existingHero.setId(id);
+        when(superHeroRepository.existsByNameAndIdNot(anyString(),anyLong())).thenReturn(false);
         when(superHeroRepository.findById(anyLong())).thenReturn(Optional.of(existingHero));
 
-        SuperHero result = superHeroService.update(updatedSuperHeroDto);
+        SuperHero result = superHeroService.update(updatedSuperHeroDto,id);
         assertNotNull(result);
-        assertEquals("Superman", result.getName());
+        assertEquals("The Superman", result.getName());
         assertEquals("The Man of Steel", result.getDescription());
         assertEquals(2, result.getSuperPowers().size());
         assertEquals("Flight", result.getSuperPowers().get(0));
         assertEquals("Super strength", result.getSuperPowers().get(1));
         assertEquals(1, result.getVulnerabilities().size());
         assertEquals("Kryptonite", result.getVulnerabilities().getFirst());
+    }
+
+    @Test
+    public void updateSuperHeroRepeatedNameTest() {
+        SuperHeroRequestDto updatedSuperHeroDto = SuperHeroRequestDto.builder()
+                .name("Superman")
+                .description("The Man of Steel")
+                .superPowers(Arrays.asList("Flight", "Super strength"))
+                .vulnerabilities(List.of("Kryptonite"))
+                .build();
+        when(superHeroRepository.existsByNameAndIdNot(anyString(),anyLong())).thenReturn(true);
+
+        InvalidParameterException exception = assertThrows(InvalidParameterException.class, () -> superHeroService.update(updatedSuperHeroDto,1L));
+        assertEquals("Another superhero with the same name already exists.", exception.getMessage());
     }
 
     @Test

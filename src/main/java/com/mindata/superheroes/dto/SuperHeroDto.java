@@ -36,14 +36,4 @@ public class SuperHeroDto {
                 .vulnerabilities(superHero.getVulnerabilities())
                 .build();
     }
-
-    public static SuperHero toSuperHero(SuperHeroDto superHeroDto) {
-       return SuperHero.builder()
-               .id(superHeroDto.getId())
-               .name(superHeroDto.getName())
-               .description(superHeroDto.getDescription())
-               .superPowers(superHeroDto.getSuperPowers())
-               .vulnerabilities(superHeroDto.getVulnerabilities())
-               .build();
-    }
 }

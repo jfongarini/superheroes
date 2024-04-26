@@ -17,15 +17,39 @@ public class SuperHeroRepositoryTest {
 
     @Test
     public void findAllByNameTest() {
-        SuperHero batman = SuperHero.builder()
-                .name("Batman")
-                .description("The Dark Knight")
+        SuperHero flash = SuperHero.builder()
+                .name("Flash")
+                .description("The fastest man alive")
                 .build();
-        superHeroRepository.save(batman);
-        List<SuperHero> superHeroes = superHeroRepository.findAllByName("atm");
+        superHeroRepository.save(flash);
+        List<SuperHero> superHeroes = superHeroRepository.findAllByName("ash");
 
         assertFalse(superHeroes.isEmpty());
-        assertEquals("Batman", superHeroes.getFirst().getName());
-        assertEquals("The Dark Knight", superHeroes.getFirst().getDescription());
+        assertEquals("Flash", superHeroes.getFirst().getName());
+        assertEquals("The fastest man alive", superHeroes.getFirst().getDescription());
+    }
+
+    @Test
+    public void existsByName(){
+        SuperHero aquaman = SuperHero.builder()
+                .name("Aquaman")
+                .description("King of Atlantis")
+                .build();
+        superHeroRepository.save(aquaman);
+        boolean exist = superHeroRepository.existsByName("Aquaman");
+
+        assertTrue(exist);
+    }
+
+    @Test
+    public void existsByNameAndIdNot(){
+        SuperHero aquawoman = SuperHero.builder()
+                .name("Aquawoman")
+                .description("Queen of Atlantis")
+                .build();
+        superHeroRepository.save(aquawoman);
+        boolean exist = superHeroRepository.existsByNameAndIdNot("Aquawoman",1L);
+
+        assertTrue(exist);
     }
 }
